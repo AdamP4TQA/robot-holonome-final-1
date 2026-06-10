@@ -1,6 +1,7 @@
+//  --- Bibliothèque Dabble ---
 #define CUSTOM_SETTINGS
 #define INCLUDE_GAMEPAD_MODULE
-
+// --- Communication ---
 #include <DabbleESP32.h>
 #include <Wire.h>
 
@@ -12,7 +13,7 @@ const int enJ4 = 26, in1J4 = 15, in2J4 = 14;
 const int freq = 5000, resolution = 8;
 const int chJ5 = 0, chJ2 = 1, chJ3 = 2, chJ4 = 3;
 
-// La vitesse passe en variable globale (non-const) et démarre à 200
+
 int vitesse = 200; 
 
 void setup() {
@@ -108,14 +109,14 @@ void rotation_droite() {
   digitalWrite(in2J4, LOW);
 }
 
-// Remis exactement selon votre logique initiale
+
 void rotation_gauche() {
   ledcWrite(chJ5, vitesse);
   digitalWrite(in1J5, LOW);
   digitalWrite(in2J5, HIGH);
   ledcWrite(chJ2, vitesse);
   digitalWrite(in1J2, LOW);
-  digitalWrite(in2J2, HIGH); // Ligne d'origine restaurée
+  digitalWrite(in2J2, HIGH); 
   ledcWrite(chJ3, vitesse);
   digitalWrite(in1J3, LOW);
   digitalWrite(in2J3, HIGH);
@@ -157,23 +158,21 @@ void straight_gauche() {
 void loop() {
   Dabble.processInput();
 
-  // --- CHANGEMENT DE VITESSE EN MEMOIRE ---
-  // On vérifie les boutons individuellement pour mettre à jour la variable globale.
-  // Une simple impulsion suffit à mémoriser le changement.
+  // --- CHANGEMENT DE VITESSE ---
   if (GamePad.isSquarePressed()) {
-    vitesse = 210; // Carré -> Minimum
-    Serial.println("Vitesse definie sur MIN (170)");
+    vitesse = 210; 
+    Serial.println("Vitesse min");
   } 
   else if (GamePad.isStartPressed()) {
-    vitesse = 225; // Start -> Normale
-    Serial.println("Vitesse definie sur NORMAL (200)");
+    vitesse = 225; 
+    Serial.println("Vitesse moy");
   }
-  // Note : La Croix (Cross) ajuste la vitesse à 255 ET déclenche straight_gauche() simultanément.
   if (GamePad.isTrianglePressed()) {
     vitesse = 250; 
+    Serial.println("Vitesse max");
   }
 
-  // --- LOGIQUE DE MOUVEMENT (RESTAURÉE À L'IDENTIQUE) ---
+  // --- MOUVEMENT AVEC LES BOUTONS
   if (GamePad.isUpPressed()) {
     avancer();
     Serial.println("AVANCER");
@@ -190,13 +189,14 @@ void loop() {
     straight_droite();
     Serial.println("SDROITE");
   } else if (GamePad.isCrossPressed()) {
-    straight_gauche(); // S'exécute à la vitesse maximale de 255
-    Serial.println("SGAUCHE + Vitesse MAX (255)");
+    straight_gauche(); 
+    Serial.println("SGAUCHE");
   } else {
     arret();
   }
 
   // Capteur I2C MPU6050
+  // --- l'accéléromètre ---
   Wire.beginTransmission(0x68);
   Wire.write(0x3B);
   Wire.endTransmission(false);
@@ -204,7 +204,7 @@ void loop() {
   int16_t ax = (Wire.read() << 8) | Wire.read();
   int16_t ay = (Wire.read() << 8) | Wire.read();
   int16_t az = (Wire.read() << 8) | Wire.read();
-
+// --- l'inclinaison ---
   Wire.beginTransmission(0x68);
   Wire.write(0x43);
   Wire.endTransmission(false);
@@ -213,9 +213,19 @@ void loop() {
   int16_t gy = (Wire.read() << 8) | Wire.read();
   int16_t gz = (Wire.read() << 8) | Wire.read();
 
-  Serial.print("G: "); Serial.print(gx); Serial.print(" "); Serial.print(gy); Serial.print(" "); Serial.println(gz);
-  Serial.print("A: "); Serial.print(ax); Serial.print(" "); Serial.print(ay); Serial.print(" "); Serial.println(az);
-  Serial.println("");
+  Serial.print("G: "); 
+  Serial.print(gx); 
+  Serial.print(" "); 
+  Serial.print(gy); 
+  Serial.print(" "); 
+  Serial.println(gz);
+  Serial.print("A: "); 
+  Serial.print(ax); 
+  Serial.print(" "); 
+  Serial.print(ay); 
+  Serial.print(" "); 
+  Serial.println(az);
+  Serial.println(" ");
   
   delay(10);
 }
